@@ -1,34 +1,31 @@
 import streamlit as st
 import pandas as pd
-import unicodedata
-import os
-import math
+import matplotlib.pyplot as plt 
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
 import warnings
-from sklearn.linear_model import BayesianRidge
+from sklearn.linear_model import BayesianRidge, LinearRegression
 import plotly.express as px
-warnings.filterwarnings("ignore")
-import pandas as pd
 import matplotlib.pyplot as plt
-import statsmodels.api as sm
+
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from scipy import stats
-import bokeh
-import numpy as np
-import seaborn as sns
-from imblearn.over_sampling import SMOTE
-import pandas as pd
 import seaborn as sns
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression # this could be any ML method
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.experimental import enable_iterative_imputer
-from sklearn.impute import IterativeImputer, SimpleImputer
-from sklearn.preprocessing import StandardScaler, RobustScaler
-import matplotlib.pyplot as plt
-import kagglehub
-from urllib.error import URLError
+from sklearn.impute import IterativeImputer
+from sklearn.preprocessing import StandardScaler
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
-from sklearn.linear_model import LogisticRegression
+
+from sklearn.preprocessing import LabelEncoder
+
+from sklearn.compose import ColumnTransformer
+
+warnings.filterwarnings("ignore")
 
 # Train the logistic regression model
 
@@ -38,7 +35,6 @@ nltk.download('vader_lexicon')
 
 
 def intro(data,df_tweet,df_cleaned,numerical_cols,df_imputed,df_combined):
-    import streamlit as st
 
     st.header("US Stock data analysis")
     st.sidebar.header("Please select the demo")
@@ -87,8 +83,6 @@ def intro(data,df_tweet,df_cleaned,numerical_cols,df_imputed,df_combined):
     st.write(df_combined.head())
 
 def Visualization(df_imputed,df_encoded,df_scores):
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
     st.write("Have chosen microsoft, tesla, google and Apple for the visualization:")
     for i in df_encoded['companies'].unique():
         # Filter data for the current company
@@ -216,12 +210,6 @@ def EDA_IDA(df_clean,df_std, df_outlier,df_imputed,df_encoded):
 
 
 def Modelling(df_combined):
-    import numpy as np # import necessary libraries
-    import matplotlib.pyplot as plt 
-    from sklearn.linear_model import LinearRegression
-    from sklearn.preprocessing import PolynomialFeatures
-    from sklearn.metrics import mean_squared_error
-    from sklearn.model_selection import train_test_split
     order=3
     poly = PolynomialFeatures(degree=order) 
     X=df_combined[['pos','neg','neu']]
@@ -262,17 +250,6 @@ def data_cleaning(data):
     return data
 
 def outlier_removal(df):
-        # Calculate Q1 (25th percentile) and Q3 (75th percentile)
-        # Q1 = df[col].quantile(0.10)
-        # Q3 = df[col].quantile(0.90)
-        # IQR = Q3 - Q1  # Interquartile Range
-        
-        # # Define the bounds for outliers
-        # lower_bound = Q1 - 1.5 * IQR
-        # upper_bound = Q3 + 1.5 * IQR
-        
-        # # Filter out the outliers
-        # df = df[(df[col] >= lower_bound) & (df[col] <= upper_bound)]
 
     float_cols = df.select_dtypes(include='number').columns
     df_filtered = df[df[float_cols].apply(lambda x: x.between(-3, 3)).all(axis=1)]
@@ -367,13 +344,11 @@ def sentiment_analyser(df_combined):
     return df_std
 
 def data_encoding(df):
-    from sklearn.preprocessing import LabelEncoder
     le = LabelEncoder()
     df['companies_encoded'] = le.fit_transform(df['companies'])
     return df
 
 def standarization(df):
-    from sklearn.compose import ColumnTransformer
     scaler = StandardScaler()
     numerical_columns=df.select_dtypes(include='number').columns
     preprocessor = ColumnTransformer(
