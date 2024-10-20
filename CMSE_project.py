@@ -42,8 +42,8 @@ nltk.download('vader_lexicon')
 def intro(data,df_tweet,df_cleaned,numerical_cols,df_imputed,df_combined):
     import streamlit as st
 
-    st.write("US Stock data analysis")
-    st.sidebar.success("Select a demo above.")
+    st.header("US Stock data analysis")
+    st.sidebar.header("Please select the demo")
 
     st.markdown(
         """
@@ -54,17 +54,17 @@ def intro(data,df_tweet,df_cleaned,numerical_cols,df_imputed,df_combined):
         systems where investors and brokers are highly concerned with how certain 
         companies and assets flow in respect to time. This assignment gives us an approach to compare 
         various stocks and assets and provide detailed findings so that investors can adjust their buying 
-        and selling strategies accordingly to maximize profit and minimize risk of loss.
+        and selling strategies accordingly to maximize profit and minimize risk of loss.""")
 
-        Stocks and Assets
+    st.subheader("Stocks and Assets")
 
-        Stocks
+    st.markdown("""Stocks
 
-        We categorize stocks as shares of publicly-traded companies. They represent some form of ownership of the company. Buying shares of that company makes you one of the owners partially. Stock prices can fluctuate based on corporate related factors.
+        We categorize stocks as shares of publicly-traded companies. They represent some form of ownership of the company. Buying shares of that company makes you one of the owners partially. Stock prices can fluctuate based on corporate related factors.""")
 
-        Assets/Commodities
+    st.subheader("Assets/Commodities")
 
-        Assets, or also known as commodities, hold value that represents some form of wealth that is tradeable as well. Investors alternatively trade assets to diversify their portfolios. Our data set includes assets like gold, platinum, as well as cryptocurrencies like bitcoin. Note that assets generally have higher volatility and are prone to sudden and massive fluctuations, increasing risks altogether.
+    st.markdown("""Assets, or also known as commodities, hold value that represents some form of wealth that is tradeable as well. Investors alternatively trade assets to diversify their portfolios. Our data set includes assets like gold, platinum, as well as cryptocurrencies like bitcoin. Note that assets generally have higher volatility and are prone to sudden and massive fluctuations, increasing risks altogether.
 
         Research Objectives
         Optimize stock/asset selection for investment purposes
@@ -72,13 +72,20 @@ def intro(data,df_tweet,df_cleaned,numerical_cols,df_imputed,df_combined):
         Analyze interrelationships among various stock options
     """
     )
-    st.write("companies dataset:")
+    st.subheader("Companies dataset:")
     st.write(data.head())
-    st.write("tweets dataset:")
+    st.subheader("Tweets dataset:")
     st.write(df_tweet.head())
-    st.write("numerical columns:")
+    st.subheader("numerical columns:")
     st.write(numerical_cols)
-    st.write('After handing null values, data cleaning, the dataset is combined as shown below:')
+    st.subheader('After handing null values, data cleaning, the dataset is combined as shown below:')
+    st.markdown("""
+                1. Null values were handled using MICE imputation
+                2. Data cleaning steps:
+                    - Some numerical columns had . and , which had to be reomoved to convert from str and object to float datatype. 
+                    - Both datasets had columns of Date which had different formats like - and / which had to be reformated to convert to datetime format. 
+                    - Dropped duplicates.
+                3. Data integration was done by transforming the stock dataset by convertinig the columns into rows with the comany names and stock value as the columns, To this dataset,tweet dataset is merged over company and date columns. """)
     st.write(df_combined.head())
 
 def Visualization(df_imputed,df_encoded,df_scores):
@@ -166,18 +173,25 @@ def Visualization(df_imputed,df_encoded,df_scores):
 
 
 
-def EDA_IDA(df_clean, df_outlier,df_imputed,df_encoded):
+def EDA_IDA(df_clean,df_std, df_outlier,df_imputed,df_encoded):
     st.subheader("Standardization")
-    st.write("before standardization:")
+    st.write("Before standardization:")
     st.write(df_clean.describe())
-    st.write("after standardization:")
+    st.write("After standardization:")
+    st.write(df_std.describe())
+    st.write("Before removing outlier")
+    fig = px.scatter(x=df_std.index,y=df_std['Netflix_Vol.'])
+    st.plotly_chart(fig, theme=None)
+    st.write("After removing outlier")
+    fig = px.scatter(x=df_outlier.index,y=df_outlier['Netflix_Vol.'])
     st.write(df_outlier.describe())
+    st.plotly_chart(fig, theme=None)
     st.subheader("Missing values handling")
-    st.write("before imputation:")
+    st.write("Before imputation:")
     st.write(df_clean.isna().sum())
     MCAR_test(df_clean)
-    st.write("after MICE imputation")
-    st.write(df_imputed)
+    st.write("After MICE imputation")
+    st.write(df_imputed.isna().sum())
     st.subheader("Correlation")
     fig, ax = plt.subplots()
     correlation= df_clean[numerical_cols].corr()
@@ -204,7 +218,34 @@ def EDA_IDA(df_clean, df_outlier,df_imputed,df_encoded):
 
 
 def Modelling(df_combined):
-    st.header("this part is yet to started")
+    import numpy as np # import necessary libraries
+    import matplotlib.pyplot as plt 
+    from sklearn.linear_model import LinearRegression
+    from sklearn.preprocessing import PolynomialFeatures
+    from sklearn.metrics import mean_squared_error
+    from sklearn.model_selection import train_test_split
+    order=3
+    poly = PolynomialFeatures(degree=order) 
+    X=df_combined[['pos','neg','neu']]
+    st.subheader('Independent features:')
+    st.write(X.head())
+    st.subheader('Dependent features:')
+    y=df_combined['values']
+    st.write(y.head())
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train_poly = poly.fit_transform(X_train) #fit both the training and test data to a polynomial function of degree n
+    X_test_poly = poly.transform(X_test)
+
+    # # 3. Initialize and fit the model (Linear Regression in this example)
+    model = LinearRegression()
+    model.fit(X_train_poly, y_train)
+
+    # 4. Make predictions on the test set
+    y_pred = model.predict(X_test_poly)
+
+    # 5. Evaluate the model (e.g., using Mean Squared Error)
+    mse = mean_squared_error(y_test, y_pred)
+    st.write("Mean Squared Error:", mse)
 
 
 
@@ -223,21 +264,21 @@ def data_cleaning(data):
     return data
 
 def outlier_removal(df):
-    columns=df.columns
-    for col in columns:
         # Calculate Q1 (25th percentile) and Q3 (75th percentile)
-        Q1 = df[col].quantile(0.25)
-        Q3 = df[col].quantile(0.75)
-        IQR = Q3 - Q1  # Interquartile Range
+        # Q1 = df[col].quantile(0.10)
+        # Q3 = df[col].quantile(0.90)
+        # IQR = Q3 - Q1  # Interquartile Range
         
-        # Define the bounds for outliers
-        lower_bound = Q1 - 1.5 * IQR
-        upper_bound = Q3 + 1.5 * IQR
+        # # Define the bounds for outliers
+        # lower_bound = Q1 - 1.5 * IQR
+        # upper_bound = Q3 + 1.5 * IQR
         
-        # Filter out the outliers
-        df = df[(df[col] >= lower_bound) & (df[col] <= upper_bound)]
-    
-    return df
+        # # Filter out the outliers
+        # df = df[(df[col] >= lower_bound) & (df[col] <= upper_bound)]
+
+    float_cols = df.select_dtypes(include='number').columns
+    df_filtered = df[df[float_cols].apply(lambda x: x.between(-3, 3)).all(axis=1)]
+    return df_filtered.dropna()
 
 def imputation(df):
     df_numeric = df.reset_index(drop=True)  
@@ -371,7 +412,7 @@ demo_name = st.sidebar.selectbox("Choose a demo", functions)
 if(demo_name=='Intro, Data collection and preparation'):
     intro(data,df_tweet,df_cleaned,numerical_cols,df_imputed,df_combined)
 elif(demo_name=='IDA and EDA'):
-    EDA_IDA(df_clean, df_outlier,df_imputed,df_encoded)
+    EDA_IDA(df_clean,df_std, df_outlier,df_imputed,df_encoded)
 elif(demo_name=='Visualizations'):
     Visualization(df_imputed,df_encoded,df_scores)
 elif(demo_name=='Modelling'):
