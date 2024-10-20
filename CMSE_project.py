@@ -9,7 +9,7 @@ import warnings
 from sklearn.linear_model import BayesianRidge, LinearRegression
 import plotly.express as px
 import matplotlib.pyplot as plt
-
+from sklearn.experimental import enable_iterative_imputer
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from scipy import stats
