@@ -14,6 +14,7 @@ import time
 import numpy as np
 import streamlit as st
 import base64
+import LSTM
 
 def set_bg_hack_url():
     '''
@@ -90,13 +91,16 @@ elif(page=="EDA, Visualization"):
         integrated_data = pd.read_csv('integrated_data.csv')
         df_numeric = integrated_data.select_dtypes(include=[np.number])
         EDA.corr_matrix(df_numeric)
-        EDA.BERT(sentiment_data)
         EDA.PCA_visual(df_numeric)
         EDA.times_series_plot(integrated_data)
 
+
 elif(page=='Model'):
     integrated_data = pd.read_csv('integrated_data.csv')
-    model.sarimax(integrated_data)
+    model.sarimax(integrated_data)      
+    LSTM.main(integrated_data)
+
+
         
 else:
     set_bg_hack_url()
