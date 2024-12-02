@@ -34,13 +34,6 @@ def PCA_visual(df_numeric):
     principal.fit(Scaled_data)
     x=principal.transform(Scaled_data)
 
-    # Check the dimensions of data after PCA
-    print(x.shape)
-    x = np.random.rand(100, 3)  # Replace with your actual data
-    df_numeric = pd.DataFrame({
-            'ma5': np.random.rand(100)  # Replace with actual values from your dataset
-        })
-
     # Streamlit application
     st.title("3D Scatter Plot Example")
 
@@ -69,14 +62,16 @@ def PCA_visual(df_numeric):
                                 columns=[f'PC{i+1}' for i in range(3)])
 
     # Step 4: Plot the contributions
-    fig2 = contributions.plot(kind='bar', figsize=(10, 6))
-    plt.title('Contributions of Each Stock to Top-3 Principal Components')
-    plt.ylabel('Contribution')
-    plt.xlabel('Stocks')
-    plt.legend(title='Principal Components')
+    fig, ax = plt.subplots(figsize=(10, 6))
+    contributions.plot(kind='bar', ax=ax)
+    ax.set_title('Contributions of Each Stock to Top-3 Principal Components')
+    ax.set_ylabel('Contribution')
+    ax.set_xlabel('Stocks')
+    ax.legend(title='Principal Components')
     plt.tight_layout()
-    plt.show()
-    st.pyplot(fig2)
+
+    # Display the plot in Streamlit
+    st.pyplot(fig)
 
     # Step 5: Explained Variance (Optional: to show the importance of each component)
     explained_variance = principal.explained_variance_ratio_

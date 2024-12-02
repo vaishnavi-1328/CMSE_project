@@ -89,6 +89,9 @@ elif(page=="EDA, Visualization"):
         sentiment_data = pd.read_csv('sentiment_data.csv')
         fin = Finance_data_integrator.main()
         integrated_data = pd.read_csv('integrated_data.csv')
+        integrated_data['date'] = pd.to_datetime(integrated_data['Unnamed: 0'])
+        integrated_data=integrated_data.set_index('date')
+        filtered_df = integrated_data[integrated_data.index.year > 2020]
         df_numeric = integrated_data.select_dtypes(include=[np.number])
         EDA.corr_matrix(df_numeric)
         EDA.PCA_visual(df_numeric)
@@ -97,7 +100,9 @@ elif(page=="EDA, Visualization"):
 
 elif(page=='Model'):
     integrated_data = pd.read_csv('integrated_data.csv')
-    model.sarimax(integrated_data)      
+    model.sarimax(integrated_data)   
+    df_numeric = integrated_data.select_dtypes(include=["number"])   
+    st.title("LSTM model, with 10 epochs")
     LSTM.main(integrated_data)
 
 
