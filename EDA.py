@@ -20,6 +20,9 @@ def corr_matrix(df_numeric):
     fig_corr = px.imshow(df_numeric.corr(), text_auto=True, aspect="auto",
                         title="Correlation Heatmap of Numeric Variables")
     st.plotly_chart(fig_corr)
+    st.write(" In the correlation matrix we can see that there is high correlation between the features from the stock data. It is obvious because, the difference between these values in a day \
+             will be minimal as compared to the data collected over a few years. Example, the open on the 1st of Jan could be 20 and the close could be 18 but in the month of November, the stock could have increased such that the ope could be 40 and the close as 45.\
+             The other highly correlated are the sentiment data features.")
 
 
 def PCA_visual(df_numeric):
@@ -35,7 +38,7 @@ def PCA_visual(df_numeric):
     x=principal.transform(Scaled_data)
 
     # Streamlit application
-    st.title("3D Scatter Plot Example")
+    st.title("3D Scatter Plot of PCA")
 
     # Create the figure and plot
     fig = plt.figure(figsize=(10, 10))
@@ -53,7 +56,7 @@ def PCA_visual(df_numeric):
 
     # Display the plot in Streamlit
     st.pyplot(fig)
-
+    
     principal_components = principal.components_
 
     # Step 3: Create a DataFrame for the contributions of each stock
@@ -69,26 +72,27 @@ def PCA_visual(df_numeric):
     ax.set_xlabel('Stocks')
     ax.legend(title='Principal Components')
     plt.tight_layout()
-
     # Display the plot in Streamlit
     st.pyplot(fig)
+    st.write(" The above graph shows the contribution of each feature towards the pricipal components")
+
 
     # Step 5: Explained Variance (Optional: to show the importance of each component)
     explained_variance = principal.explained_variance_ratio_
-    print(f'Explained Variance by PC1: {explained_variance[0]:.2f}')
-    print(f'Explained Variance by PC2: {explained_variance[1]:.2f}')
-    print(f'Explained Variance by PC3: {explained_variance[2]:.2f}')
+    st.write(f'Explained Variance by PC1: {explained_variance[0]:.2f}')
+    st.write(f'Explained Variance by PC2: {explained_variance[1]:.2f}')
+    st.write(f'Explained Variance by PC3: {explained_variance[2]:.2f}')
 
 
 
 
 def times_series_plot(df):
-    fig1 = px.line(df, x="Unnamed: 0", y="ma5", color_discrete_sequence=["#0514C0"], labels={'y': 'Stock'})
+    fig1 = px.line(df, x=df.index, y="ma5", color_discrete_sequence=["#0514C0"], labels={'y': 'Stock'})
     # fig.add_scatter(x=df['ds'], y=prediction['y'], mode='lines', name='Prediction', line=dict(color='#4CC005'))
     fig1.update_layout(title='Stock trend with the 5 day moving average', xaxis_title='Date', yaxis_title='Value')
     st.plotly_chart(fig1, use_container_width=True)
 
-    fig2 = px.line(df, x = 'Unnamed: 0', y='volatility')
+    fig2 = px.line(df, x = df.index, y='volatility')
     fig2.update_layout(title='Volatility trend', xaxis_title='Date', yaxis_title='Volatility')
     st.plotly_chart(fig2, use_container_width=True)
 
@@ -96,7 +100,7 @@ def times_series_plot(df):
                         vertical_spacing=0.03, row_heights=[0.7, 0.3])
 
     # Candlestick chart
-    fig3.add_trace(go.Candlestick(x=df['Unnamed: 0'],
+    fig3.add_trace(go.Candlestick(x=df.index,
                                 open=df['open'],
                                 high=df['high'],
                                 low=df['low'],
@@ -104,7 +108,7 @@ def times_series_plot(df):
                                 name='OHLC'), row=1, col=1)
 
     # Volume bar chart
-    fig3.add_trace(go.Bar(x=df['Unnamed: 0'], y=df['volume'], name='Volume'),
+    fig3.add_trace(go.Bar(x=df.index, y=df['volume'], name='Volume'),
                 row=2, col=1)
 
     fig3.update_layout(title='Price and Volume Analysis',
@@ -114,15 +118,15 @@ def times_series_plot(df):
 
 
 
-    fig4 = go.Figure(data=[go.Candlestick(x=df['Unnamed: 0'],
+    fig4 = go.Figure(data=[go.Candlestick(x=df.index,
                 open=df['open'],
                 high=df['high'],
                 low=df['low'],
                 close=df['close'])])
 
-    fig4.add_trace(go.Bar(x=df['Unnamed: 0'], y=df['volume'], name='Volume', yaxis='y2'))
+    fig4.add_trace(go.Bar(x=df.index, y=df['volume'], name='Volume', yaxis='y2'))
 
-    fig4.add_trace(go.Scatter(x=df['Unnamed: 0'], y=df['mean_sentiment_ma3'],
+    fig4.add_trace(go.Scatter(x=df.index, y=df['mean_sentiment_ma3'],
                             mode='lines', name='Sentiment (MA3)', yaxis='y3'))
 
     fig4.update_layout(
@@ -136,7 +140,9 @@ def times_series_plot(df):
     mean = df['log_return'].mean()
     std = df['log_return'].std()
     ouliers_removed = df[(df['log_return'] > mean - 2 * std) & (df['log_return'] < mean + 2 * std)]
+    st.write("outliers are removed based on the log_return values:")
     st.write(ouliers_removed.head())
+    st.write("The plot of the daily returns traces a normal distribution indicating that the central limit theorem")
     fig = px.histogram(ouliers_removed, x="daily_return", y="close" )
     st.plotly_chart(fig)
 

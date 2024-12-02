@@ -146,7 +146,6 @@ def main():
     target = integrated_data['daily_return'].shift(-1)
 
     integrated_data.to_csv('integrated_data.csv')
-    st.write(integrated_data.head())
     features.to_csv('features.csv')
     target.to_csv('target.csv')
 

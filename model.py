@@ -81,9 +81,10 @@ def yule_walker_prediction(df):
 
     predictions = future_predictions.tolist()
     fig, ax = plt.subplots()
-    plt.plot(df['Unnamed: 0'], df['close'])
+    
+    plt.plot(df.index, df['close'])
     #changed the range value to prediction_steps to ensure the x and y dimension match.
-    x = [df['Unnamed: 0'].iloc[-1] + timedelta(days=i) for i in range(1, steps + 1)]
+    x = [df.index[-1] + timedelta(days=i) for i in range(1, steps + 1)]
     plt.plot(x,  predictions)
 
 
@@ -106,9 +107,9 @@ def sarimax(df):
     model = SARIMAX(train['close'], exog=exog_train, order=(p, d, q), enforce_stationarity=False, enforce_invertibility=False)
     results = model.fit(disp=False)
 
-    st.write(results.summary())
-
+    st.title("Seasonal autoregressive integrated moving average with exogenous regressors")
     # Predict
+    st.write("Sarimax is a statistical model that is used to forecast time series data under the consideration of seasonal variations and trends.")
     forecast = results.get_forecast(steps=len(test), exog=exog_test)
 
     # Extract forecasted mean
@@ -126,10 +127,15 @@ def sarimax(df):
     ax.plot(test['close'], label='Test')
     ax.plot(predicted_mean, label='Predicted', color='red')
     ax.fill_between(conf_int.index, conf_int.iloc[:, 0], conf_int.iloc[:, 1], color='pink', alpha=0.3)
-    ax.legend()
+    
 
+    ax.legend()
     # Display plot in Streamlit
     st.pyplot(fig)
+    st.write(results.summary())
+    st.header("Summary interpretation")
+    st.write("In order to check if each term in the summary is statistically significant, we check the p numbers. The null hypothesis means that each term is not statistically significant. Hence if the p values are less than 0.05, we can reject the null hypothesis. Since that all the \
+             numbers under the column are less than 0.05, we can coclude that each feature is statistically significant.")
 
 
 from transformers import TFBertForSequenceClassification, BertTokenizer
