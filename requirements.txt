@@ -1,5 +1,4 @@
 altair==5.5.0
-altgraph @ file:///AppleInternal/Library/BuildRoots/860631e9-c1c5-11ee-98ee-b6ef2fd8d87b/Library/Caches/com.apple.xbs/Sources/python3/altgraph-0.17.2-py2.py3-none-any.whl
 appnope==0.1.4
 asttokens==2.4.1
 attrs==24.2.0
