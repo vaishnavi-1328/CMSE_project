@@ -1,6 +1,5 @@
-from statsmodels.tsa.stattools import adfuller
+
 from statsmodels.tsa.seasonal import seasonal_decompose
-from statsmodels.tsa.arima.model import ARIMA
 import streamlit as st
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
