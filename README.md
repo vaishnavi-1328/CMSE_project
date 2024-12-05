@@ -1,4 +1,6 @@
 Stock Market Analysis and Prediction Tool
+
+
 Overview
 This project is a comprehensive stock market analysis tool focused on NASDAQ indexes. It combines historical data analysis, seasonality detection, and predictive modeling to provide insights into market trends and patterns. The application is built with Streamlit, offering an interactive web interface for users to analyze stock market data and make informed investment decisions.
 Features
@@ -33,3 +35,7 @@ numpy: Numerical computations
 statsmodels: Statistical modeling and seasonality analysis
 plotly: Interactive visualizations
 scipy: Statistical computations
+
+Usage
+Start the Streamlit application:
+bash: streamlit run app.py
