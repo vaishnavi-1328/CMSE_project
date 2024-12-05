@@ -15,8 +15,9 @@ import numpy as np
 import streamlit as st
 import base64
 import LSTM
+import Seasonality
 
-def set_bg_hack_url():
+def set_bg_hack_url(link):
     '''
     A function to unpack an image from url and set as bg.
     Returns
@@ -28,7 +29,7 @@ def set_bg_hack_url():
          f"""
          <style>
          .stApp {{
-             background: url("https://www.shutterstock.com/shutterstock/videos/3435572275/thumb/1.jpg?ip=x480");
+             background: url("{link}");
              background-size: cover
          }}
          </style>
@@ -51,10 +52,22 @@ st.markdown("""
 # Sidebar con[nn]t
 st.sidebar.title("Navigation")
 page = st.sidebar.selectbox(
-    "Go to", ["Home", "Data", "EDA, Visualization", "Model"])
+    "Go to", ["Home","Project description", "Data", "EDA, Visualization", "Model"])
 # Route to the selected page
-if page=='home':
-    st.write("HELLO, WELCOME TO MY PROJECT")
+if page=='Project description':
+     set_bg_hack_url("https://static.vecteezy.com/system/resources/thumbnails/001/925/614/small_2x/business-graph-chart-of-stock-market-investment-on-blue-background-vector.jpg")
+     st.markdown(f'<h5 style="color:#edf0ee;font-size:20px;">{"As and always, Stock market is a field of calculated gambling. The amusing fact about stock market is the fact that there are so many \
+                                                             factors that play to make the stock prices increase or decrease. As data scientists, we hope to make this gambling more \
+                                                             precise and less risky as possible. With the amount of data that we have till date, the trends in the \
+                                                             market and the most important factors that impact the stock prices. In this project, we aim to forecast the NASDAQ prices.\
+                                                              The NASDAQ data was collected \
+                 from Alphavantage. This data is combined with the sentiment data that was collected from the same source. <br> \
+                 Steps that was taken throughout the project <br>\
+                1.Data collection through API <br> \
+                2. Data cleaning <br> 3. Data preprocessing <br> 4. IDA and EDA <br> 5. Modelling and Forecasting"}</h5>', unsafe_allow_html=True)
+
+
+    
 
 elif page == "Data":
     # with st.spinner('Collecting data...'):
@@ -62,7 +75,9 @@ elif page == "Data":
         # stock_data, sentiment_data = obj.fetch_data()
             
     # if stock_data is not None and sentiment_data is not None:
+    
     if(True):
+        
         st.title("ALPHAVANTAGE")
         st.markdown(" The data was collected from a website called Alphavantage that streams live news and the stock values. Here is the link for the website: [link](%s), for this project, I used Nasdaq stock values." %  'https://www.alphavantage.co/')
         
@@ -92,6 +107,8 @@ elif page == "Data":
         fin = Finance_data_integrator.main()
 
 elif(page=="EDA, Visualization"):
+    import seaborn as sns
+    import matplotlib.pyplot as plt
     with st.spinner('Collecting data...'):
         
         stock_data=pd.read_csv('stock_data.csv')
@@ -101,7 +118,7 @@ elif(page=="EDA, Visualization"):
         integrated_data = pd.read_csv('integrated_data.csv')
         integrated_data['date'] = pd.to_datetime(integrated_data['Unnamed: 0'])
         integrated_data=integrated_data.set_index('date')
-        filtered_df = integrated_data[integrated_data.index.year > 2020]
+        integrated_data = integrated_data[integrated_data.index.year > 2020]
         df_numeric = integrated_data.select_dtypes(include=[np.number])
         integrated_data.drop(['Unnamed: 0'],axis=1, inplace=True)
         st.title("Data processing, Feature engineering")
@@ -111,34 +128,76 @@ elif(page=="EDA, Visualization"):
                            2. Handled missing values and merged both the datasets by setting the date as the index."} </p>',unsafe_allow_html=True)
         
         st.write(integrated_data.head())
+        selected_column = st.selectbox("Select Column to Analyze", integrated_data.columns)
+        analysis_type = st.radio("Select Analysis Type", ["Univariate", "Bivariate"])
+
+        if analysis_type == "Univariate":
+            st.subheader(f"Univariate Analysis of {selected_column}")
+            if integrated_data[selected_column].dtype in ['float64', 'int64']:
+                # Histogram
+                fig, ax = plt.subplots(figsize=(4,4))
+                sns.histplot(integrated_data[selected_column], kde=True, ax=ax, bins=30)
+                ax.set_title(f"Histogram of {selected_column}")
+                st.pyplot(fig)
+
+                # Boxplot
+                fig, ax = plt.subplots(figsize=(10,10))
+                sns.boxplot(x=integrated_data[selected_column], ax=ax)
+                ax.set_title(f"Boxplot of {selected_column}")
+                st.pyplot(fig)
+            else:
+                # Bar plot for categorical data
+                fig, ax = plt.subplots()
+                integrated_data[selected_column].value_counts().plot(kind="bar", ax=ax)
+                ax.set_title(f"Bar Plot of {selected_column}")
+                st.pyplot(fig)
+
+        # Bivariate Analysis
+        elif analysis_type == "Bivariate":
+            st.subheader(f"Bivariate Analysis of {selected_column} vs Other Columns")
+            if integrated_data[selected_column].dtype in ['float64', 'int64']:
+                # Scatter Plot
+                other_column = st.selectbox("Select Column for Bivariate Analysis", integrated_data.select_dtypes(['float64', 'int64']).columns)
+                fig, ax = plt.subplots(figsize=(10,10))
+                sns.scatterplot(x=integrated_data[selected_column], y=integrated_data[other_column], ax=ax)
+                ax.set_title(f"Scatter Plot: {selected_column} vs {other_column}")
+                st.pyplot(fig)
+
+            else:
+                st.write(f"Bivariate analysis for {selected_column} is not supported for non-numeric data.")
+
         EDA.corr_matrix(df_numeric)
         EDA.PCA_visual(df_numeric)
         EDA.times_series_plot(integrated_data)
+        Seasonality.main(integrated_data)
 
 
 elif(page=='Model'):
     integrated_data = pd.read_csv('integrated_data.csv')
-    model.sarimax(integrated_data)   
-    df_numeric = integrated_data.select_dtypes(include=["number"])   
-    st.title("LSTM model, with 10 epochs")
-    LSTM.main(integrated_data)
-    model.yule_walker_prediction(integrated_data)
+    integrated_data['date'] = pd.to_datetime(integrated_data['Unnamed: 0'])    
+    integrated_data=integrated_data.set_index('date')
+    integrated_data = integrated_data[integrated_data.index.year > 2020]
+    df_numeric = integrated_data.select_dtypes(include=[np.number])
+    integrated_data.drop(['Unnamed: 0'],axis=1, inplace=True)
+    tab1, tab2, tab3 = st.tabs([
+        "Yule walker",
+        "LSTM",
+        "SARIMAX"
+    ])
+    with tab1:
+        model.yule_walker_prediction(integrated_data)
+    with tab3:
+        model.sarimax(df_numeric)   
+    with tab2:
+        df_numeric = integrated_data.select_dtypes(include=["number"])
+        st.write("Disclaimer: This model takes a couple of minutes to load,")   
+        st.title("LSTM model, with 10 epochs")
+        LSTM.main(integrated_data)
 
 
         
 else:
-    set_bg_hack_url()
-    st.markdown(f'<h1 style="color:#edf0ee;font-size:40px;">{"STOCK MARKET ANALYSIS"}</h1>', unsafe_allow_html=True)
+    set_bg_hack_url("https://plus.unsplash.com/premium_photo-1681487767138-ddf2d67b35c1?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8c3RvY2slMjBtYXJrZXR8ZW58MHx8MHx8fDA%3D")
+    st.markdown(f'<h1 style="color:#edf0ee;font-size:60px;">{"STOCK MARKET ANALYSIS"}</h1>', unsafe_allow_html=True)
             
-    st.markdown(f'<h5 style="color:#edf0ee;font-size:20px;">{"As and always, Stock market is a field of calculated gambling. The amusing fact about stock market is the fact that there are so many \
-                                                             factors that play to make the stock prices increase or decrease. As data scientists, we hope to make this gambling more \
-                                                             precise and less risky as possible. With the amount of data that we have till date, the trends in the \
-                                                             market and the most important factors that impact the stock prices. In this project, we aim to forecast the NASDAQ prices.\
-                                                              The NASDAQ data was collected \
-                 from Alphavantage. This data is combined with the sentiment data that was collected from the same source. <br> \
-                 Steps that was taken throughout the project <br>\
-                1.Data collection through API <br> \
-                2. Data cleaning <br> 3. Data preprocessing <br> 4. IDA and EDA <br> 5. Modelling and Forecasting"}</h5>', unsafe_allow_html=True)
-
-
-    
+   

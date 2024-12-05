@@ -87,7 +87,11 @@ def PCA_visual(df_numeric):
 
 
 def times_series_plot(df):
-    fig1 = px.line(df, x=df.index, y="ma5", color_discrete_sequence=["#0514C0"], labels={'y': 'Stock'})
+    st.write("select the y variable you are interested in")
+    st.title("Time series plots")
+    y_variable = st.selectbox("Select Y Variable", df.columns[1:], index=0)
+
+    fig1 = px.line(df, x=df.index, y=y_variable, color_discrete_sequence=["#0514C0"], labels={'y': 'Stock'})
     # fig.add_scatter(x=df['ds'], y=prediction['y'], mode='lines', name='Prediction', line=dict(color='#4CC005'))
     fig1.update_layout(title='Stock trend with the 5 day moving average', xaxis_title='Date', yaxis_title='Value')
     st.plotly_chart(fig1, use_container_width=True)

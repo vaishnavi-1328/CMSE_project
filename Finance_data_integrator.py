@@ -31,7 +31,6 @@ class FinancialDataIntegrator:
         Preprocess and aggregate sentiment data
         """
         df = sentiment_df.copy()
-
         # Convert time to datetime if not already
         df['time_published'] = pd.to_datetime(df['time_published'])
 
@@ -46,10 +45,9 @@ class FinancialDataIntegrator:
                 ('sentiment_count', 'count')
             ]
         }).droplevel(0, axis=1)
-
         # Fill missing values with forward fill, then backward fill
         daily_sentiment = daily_sentiment.fillna(method='ffill').fillna(method='bfill')
-
+        
         return daily_sentiment
 
     def integrate_data(self, price_df, sentiment_df, sentiment_window=3):
