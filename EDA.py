@@ -10,7 +10,6 @@ import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from transformers import BertTokenizer, TFBertForSequenceClassification
 import tensorflow as tf
 from transformers import pipeline
 
