@@ -118,6 +118,7 @@ elif(page=="EDA, Visualization"):
         integrated_data = pd.read_csv('integrated_data.csv')
         integrated_data['date'] = pd.to_datetime(integrated_data['Unnamed: 0'])
         integrated_data=integrated_data.set_index('date')
+        df2=integrated_data.copy()
         integrated_data = integrated_data[integrated_data.index.year > 2020]
         df_numeric = integrated_data.select_dtypes(include=[np.number])
         integrated_data.drop(['Unnamed: 0'],axis=1, inplace=True)
@@ -176,6 +177,7 @@ elif(page=='Model'):
     integrated_data = pd.read_csv('integrated_data.csv')
     integrated_data['date'] = pd.to_datetime(integrated_data['Unnamed: 0'])    
     integrated_data=integrated_data.set_index('date')
+    df2 = integrated_data
     integrated_data = integrated_data[integrated_data.index.year > 2020]
     df_numeric = integrated_data.select_dtypes(include=[np.number])
     integrated_data.drop(['Unnamed: 0'],axis=1, inplace=True)
@@ -187,7 +189,7 @@ elif(page=='Model'):
     with tab1:
         model.yule_walker_prediction(integrated_data)
     with tab3:
-        model.sarimax(df_numeric)   
+        model.sarimax(integrated_data)   
     with tab2:
         df_numeric = integrated_data.select_dtypes(include=["number"])
         st.write("Disclaimer: This model takes a couple of minutes to load,")   

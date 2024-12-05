@@ -12,6 +12,12 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.ar_model import AutoReg
 from datetime import timedelta
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+import traceback
+
 
 def hypothesis_testing(df):
     from scipy import stats
@@ -162,54 +168,158 @@ def yule_walker_prediction(df):
     st.write(f"Current price: ${current_price:.2f}")
 
     if profit_or_loss > 0:
-        st.success(f"You would make a profit of ${profit_or_loss:.2f}")
+        st.success(f"You might make a profit of ${profit_or_loss:.2f}")
     elif profit_or_loss < 0:
-        st.error(f"You would incur a loss of ${abs(profit_or_loss):.2f}")
+        st.error(f"You might incur a loss of ${abs(profit_or_loss):.2f}")
     else:
         st.info("No profit, no loss.")
 
 
-
 def sarimax(df):
-  # If needed, difference the closing price for stationarity
-    df['Close_Diff'] = df['close'].diff().dropna()
-
-    # Handle missing sentiment scores or scale them
-    df['Sentiment_Score'] = df['mean_sentiment_raw'].fillna(0)
-    train_size = int(len(df) * 0.8)
-    train, test = df.iloc[:train_size], df.iloc[train_size:]
-    exog_train = train[['open', 'mean_sentiment_raw', 'day_of_week']]
-    exog_test = test[['open', 'mean_sentiment_raw', 'day_of_week']]
-
-    # Define the ARIMA order (p, d, q)
-    p, d, q = 1, 1, 1
-
-    # Fit ARIMAX Model
-    model = SARIMAX(train['close'], exog=exog_train, order=(p, d, q), enforce_stationarity=False, enforce_invertibility=False)
-    results = model.fit(disp=False)
-    st.title("Stock Price Prediction with ARIMAX")
-
-    st.write(results.summary())
-
-    # Predict
-    forecast = results.get_forecast(steps=len(test), exog=exog_test)
-
-    # Extract forecasted mean
-    predicted_mean = forecast.predicted_mean
-
-    # Confidence intervals
-    conf_int = forecast.conf_int()
-
-    # Plot Results
-    
-
-    # Plot Results
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(train['close'], label='Train')
-    ax.plot(test['close'], label='Test')
-    ax.plot(predicted_mean, label='Predicted', color='red')
-    ax.fill_between(conf_int.index, conf_int.iloc[:, 0], conf_int.iloc[:, 1], color='pink', alpha=0.3)
-    ax.legend()
-
-    st.pyplot(fig)
-
+    try:
+        st.subheader("SARIMAX Model Analysis")
+        
+        # Create copy to avoid modifying original data
+        df_model = df.copy()
+        
+        # Ensure data is sorted by date
+        df_model = df_model.sort_index()
+        
+        # Calculate differenced series
+        df_model['Close_Diff'] = df_model['close'].diff().dropna()
+        
+        # Handle missing sentiment scores
+        df_model['Sentiment_Score'] = df_model['mean_sentiment_raw'].fillna(0)
+        
+        # Create train-test split
+        train_size = int(len(df_model) * 0.8)
+        train = df_model.iloc[:train_size]
+        test = df_model.iloc[train_size:]
+        
+        # Display training and testing data info
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("Training Data Sample")
+            st.write(train.head())
+        with col2:
+            st.write("Testing Data Sample")
+            st.write(test.head())
+        
+        # Prepare exogenous variables
+        exog_columns = ['mean_sentiment_raw', 'day_of_week']
+        exog_train = train[exog_columns]
+        exog_test = test[exog_columns]
+        
+        # Define SARIMAX parameters
+        p, d, q = 1, 1, 1  # ARIMA order
+        P, D, Q, s = 1, 1, 1, 5  # Seasonal order
+        
+        # Create and fit SARIMAX model
+        with st.spinner('Fitting SARIMAX model...'):
+            model = SARIMAX(train['close'],
+                          exog=exog_train,
+                          order=(p, d, q),
+                          seasonal_order=(P, D, Q, s),
+                          enforce_stationarity=False,
+                          enforce_invertibility=False)
+            results = model.fit(disp=False)
+        
+        # Get predictions
+        forecast = results.get_forecast(steps=len(test), exog=exog_test)
+        predicted_mean = forecast.predicted_mean
+        conf_int = forecast.conf_int()
+        
+        # Create figure with secondary axis
+        fig = go.Figure()
+        
+        # Add traces for actual prices
+        fig.add_trace(
+            go.Scatter(
+                x=train.index,
+                y=train['close'],
+                name='Training Data',
+                line=dict(color='blue')
+            )
+        )
+        
+        fig.add_trace(
+            go.Scatter(
+                x=test.index,
+                y=test['close'],
+                name='Testing Data',
+                line=dict(color='green')
+            )
+        )
+        
+        # Add prediction trace
+        fig.add_trace(
+            go.Scatter(
+                x=test.index,
+                y=predicted_mean,
+                name='Predictions',
+                line=dict(color='red', dash='dash')
+            )
+        )
+        
+        # Add confidence interval
+        fig.add_trace(
+            go.Scatter(
+                x=test.index.tolist() + test.index.tolist()[::-1],
+                y=conf_int.iloc[:, 0].tolist() + conf_int.iloc[:, 1].tolist()[::-1],
+                fill='toself',
+                fillcolor='rgba(255,0,0,0.1)',
+                line=dict(color='rgba(255,0,0,0)'),
+                name='95% Confidence Interval'
+            )
+        )
+        
+        # Update layout
+        fig.update_layout(
+            title='SARIMAX Model Predictions',
+            xaxis_title='Date',
+            yaxis_title='Stock Price',
+            hovermode='x unified',
+            showlegend=True,
+            height=600,
+            template='plotly_white'
+        )
+        
+        # Display the plot
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Calculate and display metrics
+        mse = mean_squared_error(test['close'], predicted_mean)
+        rmse = np.sqrt(mse)
+        mae = mean_absolute_error(test['close'], predicted_mean)
+        
+        # Display metrics in columns
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Mean Squared Error", f"{mse:.2f}")
+        with col2:
+            st.metric("Root Mean Squared Error", f"{rmse:.2f}")
+        with col3:
+            st.metric("Mean Absolute Error", f"{mae:.2f}")
+        
+        # Display model summary in expander
+        with st.expander("View Model Summary"):
+            st.text(results.summary())
+        
+        # Optional: Add download buttons for predictions
+        prediction_df = pd.DataFrame({
+            'Actual': test['close'],
+            'Predicted': predicted_mean,
+            'Lower_CI': conf_int.iloc[:, 0],
+            'Upper_CI': conf_int.iloc[:, 1]
+        })
+        
+        st.download_button(
+            label="Download Predictions",
+            data=prediction_df.to_csv().encode('utf-8'),
+            file_name='sarimax_predictions.csv',
+            mime='text/csv'
+        )
+        
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+        st.write("Error details:", traceback.format_exc())
