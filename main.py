@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import requests
 import model
 from Data_collection import AlphaVantageAPI
 import json
@@ -177,7 +176,6 @@ elif(page=='Model'):
     integrated_data = pd.read_csv('integrated_data.csv')
     integrated_data['date'] = pd.to_datetime(integrated_data['Unnamed: 0'])    
     integrated_data=integrated_data.set_index('date')
-    df2 = integrated_data
     integrated_data = integrated_data[integrated_data.index.year > 2020]
     df_numeric = integrated_data.select_dtypes(include=[np.number])
     integrated_data.drop(['Unnamed: 0'],axis=1, inplace=True)
@@ -199,7 +197,7 @@ elif(page=='Model'):
 
         
 else:
-    set_bg_hack_url("https://plus.unsplash.com/premium_photo-1681487767138-ddf2d67b35c1?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8c3RvY2slMjBtYXJrZXR8ZW58MHx8MHx8fDA%3D")
+    set_bg_hack_url("https://t4.ftcdn.net/jpg/02/99/97/81/360_F_299978128_VrSxbrMdiTHh4Zx51SGnpMtI24SZs8MD.jpg")
     st.markdown(f'<h1 style="color:#edf0ee;font-size:60px;">{"STOCK MARKET ANALYSIS"}</h1>', unsafe_allow_html=True)
             
    

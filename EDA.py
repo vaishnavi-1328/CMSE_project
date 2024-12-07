@@ -1,13 +1,10 @@
-import seaborn as sns
+
 import matplotlib.pyplot as plt
 import plotly.express as px
-import plotly.figure_factory as ff
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
-import numpy as np
 import pandas as pd
-from mpl_toolkits.mplot3d import Axes3D
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import tensorflow as tf

@@ -140,3 +140,5 @@ def main(df):
 
     # Display the Plotly chart in Streamlit
     st.plotly_chart(fig)
+
+    

@@ -1,5 +1,4 @@
 import streamlit as st
-from bokeh.plotting import figure
 from matplotlib import pyplot as plt
 import seaborn as sns
 import matplotlib.pyplot as plt
