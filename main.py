@@ -57,7 +57,7 @@ if page=='Project description':
      set_bg_hack_url("https://static.vecteezy.com/system/resources/thumbnails/001/925/614/small_2x/business-graph-chart-of-stock-market-investment-on-blue-background-vector.jpg")
      st.markdown(f'<h5 style="color:#edf0ee;font-size:20px;">{"As and always, Stock market is a field of calculated gambling. The amusing fact about stock market is the fact that there are so many \
                                                              factors that play to make the stock prices increase or decrease. As data scientists, we hope to make this gambling more \
-                                                             precise and less risky as possible. With the amount of data that we have till date, the trends in the \
+                                                             precise and as less risky as possible. With the amount of data that we have till date, the trends in the \
                                                              market and the most important factors that impact the stock prices. In this project, we aim to forecast the NASDAQ prices.\
                                                               The NASDAQ data was collected \
                  from Alphavantage. This data is combined with the sentiment data that was collected from the same source. <br> \
@@ -124,8 +124,10 @@ elif(page=="EDA, Visualization"):
         st.title("Data processing, Feature engineering")
         st.markdown(f'<p> {"For the integration of both the datasets, the following steps have been performed:<br> 1. Converted string type date to datetime, converted datetime to date in sentiment data. <br> \
                            2. Handled missing values and merged both the datasets by setting the date as the index."} </p>',unsafe_allow_html=True)
-        st.markdown(f'<p> {"For Feature engineering, the following steps have been performed:<br> 1. Preprocessed both the stock prices and the sentiment data for more information the same like the RSI, RSI=100 - (100/1+ gain_of_window/loss_of_window), moving average, etc. <br> 3. Added time features like the day of week, month, etc \
-                           2. Handled missing values and merged both the datasets by setting the date as the index."} </p>',unsafe_allow_html=True)
+        st.markdown(f'<p> {"For Feature engineering, the following steps have been performed:<br> 1. Preprocessed both the stock prices and the sentiment data for more information the same like the RSI, RSI=100 - (100/1+ gain_of_window/loss_of_window), moving average, etc. \
+            <br> 2. Handled missing values and merged both the datasets by setting the date as the index. \
+                <br> 3. Added time features like the day of week, month, etc \
+                           "} </p>',unsafe_allow_html=True)
         
         st.write(integrated_data.head())
         selected_column = st.selectbox("Select Column to Analyze", integrated_data.columns)
